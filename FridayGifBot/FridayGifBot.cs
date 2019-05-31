@@ -51,8 +51,25 @@ namespace FridayGifBot
                      && turnContext.Activity.Text.Contains("BOT_INITIATE_FRIDAY_SPAMING_PROTOCOL")
                      && !turnContext.Activity.Text.Contains(".gif"))
             {
-                await turnContext.SendActivityAsync
-                    ("Please provide valid url for the .gif", cancellationToken: cancellationToken);
+                if (turnContext.Activity.Text.Contains("ALL_CURRENT_GIFS"))
+                {
+                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                        @"All_gifs.txt");
+
+                    string[] gifLinks = File.ReadAllLines(path);
+                    await turnContext.SendActivityAsync("SPAMMING PROTOCOL INITIATED",
+                        cancellationToken: cancellationToken);
+                    for (int i = 0; i < gifLinks.Length; i++)
+                    {
+                        await turnContext.SendActivityAsync(i + " " + gifLinks[i],
+                            cancellationToken: cancellationToken);
+                    }
+                }
+                else
+                {
+                    await turnContext.SendActivityAsync
+                        ("Please provide valid url for the .gif", cancellationToken: cancellationToken);
+                }
             }
 
             else if (turnContext.Activity.Type == ActivityTypes.Message
@@ -87,7 +104,7 @@ namespace FridayGifBot
                 int secondStringPosition = message.IndexOf(".gif");
                 string newGifAdressToSave = message.Substring(firstStringPosition,
                     secondStringPosition - firstStringPosition + 4);
-                File.AppendAllText(path, newGifAdressToSave + Environment.NewLine);
+                File.AppendAllText(path, Environment.NewLine+ newGifAdressToSave);
                 return true;
             }
             catch (Exception)
