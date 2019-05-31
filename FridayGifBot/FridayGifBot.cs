@@ -33,7 +33,7 @@ namespace FridayGifBot
                         string[] gifLinks = File.ReadAllLines(path);
                         for (int i = 0; i < gifLinks.Length; i++)
                         {
-                            await turnContext.SendActivityAsync(i + " " + gifLinks[i], cancellationToken: cancellationToken);
+                            await turnContext.SendActivityAsync(gifLinks[i], cancellationToken: cancellationToken);
                         }
                     }
                     else
@@ -73,7 +73,7 @@ namespace FridayGifBot
                     }
                     for (int i = 0; i < gifLinks.Length; i++)
                     {
-                        await turnContext.SendActivityAsync(i + " " + gifLinks[i],
+                        await turnContext.SendActivityAsync(gifLinks[i],
                             cancellationToken: cancellationToken);
                     }
                 }
