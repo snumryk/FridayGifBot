@@ -25,25 +25,40 @@ namespace FridayGifBot
             {
                 if (CheckIfGifsWhereNotPostedToday())
                 {
-                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"All_gifs.txt");
-
-                    if (SaveNewGifAddress(path, turnContext.Activity.Text))
+                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                        @"All_gifs.txt");
+                    try
                     {
-                        await turnContext.SendActivityAsync("SPAMMING PROTOCOL INITIATED", cancellationToken: cancellationToken);
-                        string[] gifLinks = File.ReadAllLines(path);
-                        for (int i = 0; i < gifLinks.Length; i++)
+                        if (SaveNewGifAddress(path, turnContext.Activity.Text))
                         {
-                            await turnContext.SendActivityAsync(gifLinks[i], cancellationToken: cancellationToken);
+                            await turnContext.SendActivityAsync("SPAMMING PROTOCOL INITIATED",
+                                cancellationToken: cancellationToken);
+                            string[] gifLinks = File.ReadAllLines(path);
+                            for (int i = 0; i < gifLinks.Length; i++)
+                            {
+                                var reply = turnContext.Activity.CreateReply();
+                                reply.Attachments.Add(new Attachment("image/gif", gifLinks[i]));
+                                await turnContext.SendActivityAsync(reply, cancellationToken);
+                            }
                         }
+                        else
+                            await turnContext.SendActivityAsync("FAILED TO PROCESS GIF URL",
+                                cancellationToken: cancellationToken);
                     }
-                    else
-                        await turnContext.SendActivityAsync("FAILED TO PROCESS GIF URL", cancellationToken: cancellationToken);
-
-
+                    catch (Exception e)
+                    {
+                        await turnContext.SendActivityAsync("SPAMMING PROTOCOL FAILED" + e.Message,
+                            cancellationToken: cancellationToken);
+                        await turnContext.SendActivityAsync(e.ToString(),
+                            cancellationToken: cancellationToken);
+                        throw;
+                    }
                 }
                 else
                 {
-                    await turnContext.SendActivityAsync("Gif spamming is alowed only once per week. Use BOT_RESET_FRIDAY_SPAMING_PROTOCOL command to reset", cancellationToken: cancellationToken);
+                    await turnContext.SendActivityAsync(
+                        "Gif spamming is alowed only once per week. Use BOT_RESET_FRIDAY_SPAMING_PROTOCOL command to reset",
+                        cancellationToken: cancellationToken);
                 }
 
             }
