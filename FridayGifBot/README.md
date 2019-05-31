@@ -4,6 +4,15 @@ Bot Framework v4 empty bot sample.
 
 This bot has been created using [Bot Framework](https://dev.botframework.com), it shows the minimum code required to build a bot.
 
+
+                                                          ## Basic bot commands ##
+
+BOT_INITIATE_FRIDAY_SPAMING_PROTOCOL  http[your gif full url].gif - will spawn all previous gifs + this one. 
+works only once per friday
+
+BOT_RESET_FRIDAY_SPAMING_PROTOCOL - reset bot friday counter, so you can initiate gif spaming again
+
+
 ## Prerequisites
 
 - [.NET Core SDK](https://dotnet.microsoft.com/download) version 2.1
