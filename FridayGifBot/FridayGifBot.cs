@@ -73,8 +73,9 @@ namespace FridayGifBot
                     }
                     for (int i = 0; i < gifLinks.Length; i++)
                     {
-                        await turnContext.SendActivityAsync(gifLinks[i],
-                            cancellationToken: cancellationToken);
+                        var reply = turnContext.Activity.CreateReply();
+                        reply.Attachments.Add(new Attachment("image/gif", gifLinks[i]));
+                        await turnContext.SendActivityAsync(reply, cancellationToken);
                     }
                 }
                 else
