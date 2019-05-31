@@ -15,4 +15,13 @@
     </Content>
   </ItemGroup>
 
+    <ItemGroup>
+      <None Update="All_gifs.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="CheckIfGifsWhereNotPostedToday.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

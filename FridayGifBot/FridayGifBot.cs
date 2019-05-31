@@ -29,8 +29,8 @@ namespace FridayGifBot
 
                     if (SaveNewGifAddress(path, turnContext.Activity.Text))
                     {
-                        string[] gifLinks = File.ReadAllLines(path);
                         await turnContext.SendActivityAsync("SPAMMING PROTOCOL INITIATED", cancellationToken: cancellationToken);
+                        string[] gifLinks = File.ReadAllLines(path);
                         for (int i = 0; i < gifLinks.Length; i++)
                         {
                             await turnContext.SendActivityAsync(i + " " + gifLinks[i], cancellationToken: cancellationToken);
@@ -53,12 +53,24 @@ namespace FridayGifBot
             {
                 if (turnContext.Activity.Text.Contains("ALL_CURRENT_GIFS"))
                 {
-                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                        @"All_gifs.txt");
-
-                    string[] gifLinks = File.ReadAllLines(path);
                     await turnContext.SendActivityAsync("SPAMMING PROTOCOL INITIATED",
                         cancellationToken: cancellationToken);
+                    string[] gifLinks;
+                    try
+                    {
+                        string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                            @"All_gifs.txt");
+
+                        gifLinks = File.ReadAllLines(path);
+                    }
+                    catch (Exception e)
+                    {
+                        await turnContext.SendActivityAsync("SPAMMING PROTOCOL FAILED" + e.Message,
+                            cancellationToken: cancellationToken);
+                        await turnContext.SendActivityAsync( e.ToString(),
+                            cancellationToken: cancellationToken);
+                        throw;
+                    }
                     for (int i = 0; i < gifLinks.Length; i++)
                     {
                         await turnContext.SendActivityAsync(i + " " + gifLinks[i],
