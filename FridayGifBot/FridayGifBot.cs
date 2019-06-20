@@ -3,16 +3,21 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Schema;
+using Microsoft.Bot.Builder.Azure;
 
 namespace FridayGifBot
 {
     public class EmptyBot : ActivityHandler
     {
+        private static readonly AzureBlobStorage _myStorage = 
+            new AzureBlobStorage
+            ("DefaultEndpointsProtocol=https;AccountName=fridaygifbotfilestorage;AccountKey=tgyilHQvZOsJCv8jqTtA6+Uu4tF15tbLHssjnNNky9qa0x4kKwxcWqvl2uqKLlkA+2kao6l30db2IkU7SVS0CQ==;EndpointSuffix=core.windows.net", "linkscontainer");
         public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Handle Message activity type, which is the main activity type for shown within a conversational interface
@@ -21,7 +26,7 @@ namespace FridayGifBot
 
             if (turnContext.Activity.Type == ActivityTypes.Message
                 && turnContext.Activity.Text.Contains("BOT_INITIATE_FRIDAY_SPAMING_PROTOCOL")
-                && turnContext.Activity.Text.Contains(".gif") && DateTime.Now.DayOfWeek == DayOfWeek.Friday)
+                && turnContext.Activity.Text.Contains(".gif")) //&& DateTime.Now.DayOfWeek == DayOfWeek.Friday
             {
                 if (CheckIfGifsWhereNotPostedToday())
                 {
@@ -124,15 +129,23 @@ namespace FridayGifBot
             }
         }
 
+        private void executeSpammingProtocol()
+        {
+            
+        }
+
         private bool SaveNewGifAddress(string path, string message)
         {
             try
             {
-                int firstStringPosition = message.IndexOf("http");
-                int secondStringPosition = message.IndexOf(".gif");
-                string newGifAdressToSave = message.Substring(firstStringPosition,
-                    secondStringPosition - firstStringPosition + 4);
-                File.AppendAllText(path, Environment.NewLine+ newGifAdressToSave);
+                //int firstStringPosition = message.IndexOf("http");
+                //int secondStringPosition = message.IndexOf(".gif");
+                //string newGifAdressToSave = message.Substring(firstStringPosition,
+                //    secondStringPosition - firstStringPosition + 4);
+
+
+                _myStorage.WriteAsync(File.ReadAllLines(path).Select((l, i) => (l, i))
+                    .ToDictionary(arg => arg.Item2.ToString(), arg => (object)arg.Item1));
                 return true;
             }
             catch (Exception)
