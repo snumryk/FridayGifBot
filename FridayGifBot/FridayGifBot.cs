@@ -22,9 +22,9 @@ namespace FridayGifBot
         /// <summary>
         /// TEMP, UDOLI
         /// </summary>
-        private static int _gifAmmount = 139;
+        private const string _gifAmmount = "GifAmmount";
 
-        private static bool _gifPostedToday = false;
+        private const string _isGifPostedToday = "IsGifPostedToday";
         public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Handle Message activity type, which is the main activity type for shown within a conversational interface
@@ -142,12 +142,9 @@ namespace FridayGifBot
                 int secondStringPosition = message.IndexOf(".gif");
                 string newGifAdressToSave = message.Substring(firstStringPosition,
                     secondStringPosition - firstStringPosition + 4);
-                ///TEMP!!!
-                var temp = new Dictionary<string, object>();
-                temp.Add("GifAmmount", (object)_gifAmmount);
-                _myStorage.WriteAsync(temp);
+                
                 var anotherTemp = new Dictionary<string, object>();
-                anotherTemp.Add("GifPostedToday", (object)_gifPostedToday);
+                anotherTemp.Add("IsGifPostedToday", DateTime.Today.ToShortDateString());
                 _myStorage.WriteAsync(anotherTemp);
                 ///TEMP!!!
                 return true;
