@@ -67,10 +67,10 @@ namespace FridayGifBot
 
             }
             else if (turnContext.Activity.Type == ActivityTypes.Message
-                     && turnContext.Activity.Text.Contains(AddNewGifCommand)
+                     && turnContext.Activity.Text.Contains(SpamGifCommand)
                      && !turnContext.Activity.Text.Contains(".gif"))
             {
-                if (turnContext.Activity.Text.Contains(SpamGifCommand))
+                if (CheckIfGifsWhereNotPostedToday())
                 {
                     await turnContext.SendActivityAsync("SPAMMING PROTOCOL INITIATED",
                         cancellationToken: cancellationToken);
@@ -102,8 +102,9 @@ namespace FridayGifBot
                 }
                 else
                 {
-                    await turnContext.SendActivityAsync
-                        ("Please provide valid url for the .gif", cancellationToken: cancellationToken);
+                    await turnContext.SendActivityAsync(
+                        "Gif adding is alowed only once per week. Use BOT_RESET_FRIDAY_SPAMING_PROTOCOL command to reset",
+                        cancellationToken: cancellationToken);
                 }
             }
 
