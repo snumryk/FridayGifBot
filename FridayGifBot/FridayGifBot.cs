@@ -21,8 +21,8 @@ namespace FridayGifBot
         /// For the one who will read this
         /// Im sorry ^-^
         /// </summary>
-        private const string GifAmmount = "GifAmmount";
-        private const string IsGifPostedToday = "IsGifPostedToday";
+        private const string GifAmmountKey = "GifAmmount";
+        private const string IsGifPostedTodayKey = "IsGifPostedToday";
         private const string SpamGifCommand = "BOT_SPAM_GIF";
         private const string AddNewGifCommand = "BOT_ADD_NEW_GIF";
         private const string ResetDateCommand = "BOT_RESET_FRIDAY_SPAMING_PROTOCOL";
@@ -76,9 +76,14 @@ namespace FridayGifBot
                     int gifLinksAmmount;
                     try
                     {
-                        var readigTask = _myStorage.ReadAsync(new[] { GifAmmount });
+                        var readigTask = _myStorage.ReadAsync(new[] { GifAmmountKey });
                         readigTask.Wait();
                         gifLinksAmmount = Convert.ToInt32(readigTask.Result.FirstOrDefault().Value);
+                        gifLinksAmmount++;
+                        for (int i = 0; i < gifLinksAmmount; i++)
+                        {
+                            await SpamGif(i, turnContext, CancellationToken.None);
+                        }
                     }
                     catch (Exception e)
                     {
@@ -88,16 +93,7 @@ namespace FridayGifBot
                             cancellationToken: cancellationToken);
                         throw;
                     }
-                    for (int i = 0; i < gifLinksAmmount; i++)
-                    {
-                        string gifIndex = Convert.ToString(i);
-                        var fetchGifFromAzure = _myStorage.ReadAsync(new[] {gifIndex});
-                        fetchGifFromAzure.Wait();
-                        string currentGifAdress = Convert.ToString(fetchGifFromAzure.Result.FirstOrDefault().Value);
-                        var reply = turnContext.Activity.CreateReply();
-                        reply.Attachments.Add(new Attachment("image/gif", currentGifAdress));
-                        await turnContext.SendActivityAsync(reply, cancellationToken);
-                    }
+
                 }
                 else
                 {
@@ -123,6 +119,17 @@ namespace FridayGifBot
             }
         }
 
+        private async Task SpamGif(int index, ITurnContext turnContext, CancellationToken cancellationToken)
+        {
+            string gifIndex = Convert.ToString(index);
+            var fetchGifFromAzure = _myStorage.ReadAsync(new[] { gifIndex });
+            fetchGifFromAzure.Wait();
+            string currentGifAdress = Convert.ToString(fetchGifFromAzure.Result.FirstOrDefault().Value);
+            var reply = turnContext.Activity.CreateReply();
+            reply.Attachments.Add(new Attachment("image/gif", currentGifAdress));
+            await turnContext.SendActivityAsync(reply, cancellationToken);
+        }
+
         private bool SaveNewGifAddress(string message)
         {
                 int firstStringPosition = message.IndexOf("http");
@@ -130,9 +137,8 @@ namespace FridayGifBot
                 string newGifAdressToSave = message.Substring(firstStringPosition,
                     secondStringPosition - firstStringPosition + 4);
 
-                var readingTask = _myStorage.ReadAsync(new[] {GifAmmount});
+                var readingTask = _myStorage.ReadAsync(new[] {GifAmmountKey});
                 readingTask.Wait();
-
                 int gifCurrentNumber = Convert.ToInt32(readingTask.Result.FirstOrDefault().Value);
                 gifCurrentNumber++;
 
@@ -143,20 +149,17 @@ namespace FridayGifBot
                 var savingTask = _myStorage.WriteAsync(dictionary);
                 savingTask.Wait();
 
-                var deletingGifAmmount = _myStorage.DeleteAsync(new[] {GifAmmount});
-                deletingGifAmmount.Wait();
-
                 var tempDictionary = new Dictionary<string, object>();
-                tempDictionary.Add(GifAmmount, (object)gifCurrentNumber);
-                var recreatingGifAmmount = _myStorage.WriteAsync(tempDictionary);
-                recreatingGifAmmount.Wait();
+                tempDictionary.Add(GifAmmountKey, (object)gifCurrentNumber);
+                var updateGifAmmount = _myStorage.WriteAsync(tempDictionary);
+                updateGifAmmount.Wait();
 
                 return true;
         }
 
         private bool CheckIfGifsWhereNotPostedToday()
         {
-            //var readingTask = _myStorage.ReadAsync(new[] {IsGifPostedToday});
+            //var readingTask = _myStorage.ReadAsync(new[] {IsGifPostedTodayKey});
             //readingTask.Wait();
             //var gifPostedDate = (DateTime)readingTask.Result.FirstOrDefault().Value;
             //if ( gifPostedDate.ToShortDateString() == DateTime.Today.ToShortDateString())
@@ -170,10 +173,10 @@ namespace FridayGifBot
 
         private void ResetDay()
         {
-            var deletingTask = _myStorage.DeleteAsync(new[] { IsGifPostedToday });
+            var deletingTask = _myStorage.DeleteAsync(new[] { IsGifPostedTodayKey });
             deletingTask.Wait();
             var newDateEntry = new Dictionary<string, object>();
-            newDateEntry.Add(IsGifPostedToday, (object)DateTime.Today.ToShortDateString());
+            newDateEntry.Add(IsGifPostedTodayKey, (object)DateTime.Today.ToShortDateString());
             var newDateEntryTask = _myStorage.WriteAsync(newDateEntry);
             newDateEntryTask.Wait();
         }
