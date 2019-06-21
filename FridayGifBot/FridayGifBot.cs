@@ -3,9 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
@@ -20,19 +18,22 @@ namespace FridayGifBot
             new AzureBlobStorage
             ("DefaultEndpointsProtocol=https;AccountName=fridaygifbotfilestorage;AccountKey=tgyilHQvZOsJCv8jqTtA6+Uu4tF15tbLHssjnNNky9qa0x4kKwxcWqvl2uqKLlkA+2kao6l30db2IkU7SVS0CQ==;EndpointSuffix=core.windows.net", "linkscontainer");
         /// <summary>
-        /// TEMP, UDOLI
+        /// For the one who will read this
+        /// Im sorry ^-^
         /// </summary>
-        private const string _gifAmmount = "GifAmmount";
+        private const string GifAmmount = "GifAmmount";
+        private const string IsGifPostedToday = "IsGifPostedToday";
+        private const string SpamGifCommand = "BOT_SPAM_GIF";
+        private const string AddNewGifCommand = "BOT_ADD_NEW_GIF";
+        private const string ResetDateCommand = "BOT_RESET_FRIDAY_SPAMING_PROTOCOL";
 
-        private const string _isGifPostedToday = "IsGifPostedToday";
         public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Handle Message activity type, which is the main activity type for shown within a conversational interface
             // Message activities may contain text, speech, interactive cards, and binary or unknown attachments.
             // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types
-
             if (turnContext.Activity.Type == ActivityTypes.Message
-                && turnContext.Activity.Text.Contains("BOT_INITIATE_FRIDAY_SPAMING_PROTOCOL")
+                && turnContext.Activity.Text.Contains(AddNewGifCommand)
                 && turnContext.Activity.Text.Contains(".gif")) //&& DateTime.Now.DayOfWeek == DayOfWeek.Friday
             {
                 if (CheckIfGifsWhereNotPostedToday())
@@ -41,15 +42,8 @@ namespace FridayGifBot
                     {
                         if (SaveNewGifAddress(turnContext.Activity.Text))
                         {
-                            await turnContext.SendActivityAsync("SPAMMING PROTOCOL INITIATED",
+                            await turnContext.SendActivityAsync("GIF SUCCESSFULLY ADDED TO THE DATABASE",
                                 cancellationToken: cancellationToken);
-                            //Dictionary<string, object> gifLinks = _myStorage.ReadAsync();
-                            //for (int i = 0; i < gifLinks.Length; i++)
-                            //{
-                            //    var reply = turnContext.Activity.CreateReply();
-                            //    reply.Attachments.Add(new Attachment("image/gif", gifLinks[i]));
-                            //    await turnContext.SendActivityAsync(reply, cancellationToken);
-                            //}
                         }
                         else
                             await turnContext.SendActivityAsync("FAILED TO PROCESS GIF URL",
@@ -57,7 +51,7 @@ namespace FridayGifBot
                     }
                     catch (Exception e)
                     {
-                        await turnContext.SendActivityAsync("SPAMMING PROTOCOL FAILED" + e.Message,
+                        await turnContext.SendActivityAsync("FAILED TO ADD GIF" + e.Message,
                             cancellationToken: cancellationToken);
                         await turnContext.SendActivityAsync(e.ToString(),
                             cancellationToken: cancellationToken);
@@ -67,26 +61,25 @@ namespace FridayGifBot
                 else
                 {
                     await turnContext.SendActivityAsync(
-                        "Gif spamming is alowed only once per week. Use BOT_RESET_FRIDAY_SPAMING_PROTOCOL command to reset",
+                        "Gif adding is alowed only once per week. Use BOT_RESET_FRIDAY_SPAMING_PROTOCOL command to reset",
                         cancellationToken: cancellationToken);
                 }
 
             }
             else if (turnContext.Activity.Type == ActivityTypes.Message
-                     && turnContext.Activity.Text.Contains("BOT_INITIATE_FRIDAY_SPAMING_PROTOCOL")
+                     && turnContext.Activity.Text.Contains(AddNewGifCommand)
                      && !turnContext.Activity.Text.Contains(".gif"))
             {
-                if (turnContext.Activity.Text.Contains("ALL_CURRENT_GIFS"))
+                if (turnContext.Activity.Text.Contains(SpamGifCommand))
                 {
                     await turnContext.SendActivityAsync("SPAMMING PROTOCOL INITIATED",
                         cancellationToken: cancellationToken);
-                    string[] gifLinks;
+                    int gifLinksAmmount;
                     try
                     {
-                        string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                            @"All_gifs.txt");
-
-                        gifLinks = File.ReadAllLines(path);
+                        var readigTask = _myStorage.ReadAsync(new[] { GifAmmount });
+                        readigTask.Wait();
+                        gifLinksAmmount = Convert.ToInt32(readigTask.Result.FirstOrDefault().Value);
                     }
                     catch (Exception e)
                     {
@@ -96,10 +89,14 @@ namespace FridayGifBot
                             cancellationToken: cancellationToken);
                         throw;
                     }
-                    for (int i = 0; i < gifLinks.Length; i++)
+                    for (int i = 0; i < gifLinksAmmount; i++)
                     {
+                        string gifIndex = Convert.ToString(i);
+                        var fetchGifFromAzure = _myStorage.ReadAsync(new[] {gifIndex});
+                        fetchGifFromAzure.Wait();
+                        string currentGifAdress = Convert.ToString(fetchGifFromAzure.Result.FirstOrDefault().Value);
                         var reply = turnContext.Activity.CreateReply();
-                        reply.Attachments.Add(new Attachment("image/gif", gifLinks[i]));
+                        reply.Attachments.Add(new Attachment("image/gif", currentGifAdress));
                         await turnContext.SendActivityAsync(reply, cancellationToken);
                     }
                 }
@@ -111,7 +108,7 @@ namespace FridayGifBot
             }
 
             else if (turnContext.Activity.Type == ActivityTypes.Message
-                     && turnContext.Activity.Text.Contains("BOT_INITIATE_FRIDAY_SPAMING_PROTOCOL")
+                     && turnContext.Activity.Text.Contains(SpamGifCommand)
                      && turnContext.Activity.Text.Contains(".gif") && DateTime.Now.DayOfWeek != DayOfWeek.Friday)
             {
                 await turnContext.SendActivityAsync("WRONG DAY FOR GIFs", cancellationToken: cancellationToken);
@@ -126,10 +123,9 @@ namespace FridayGifBot
 
             if (turnContext.Activity.Type == ActivityTypes.Message
                 && turnContext.Activity.Text.Contains
-                    ("BOT_RESET_FRIDAY_SPAMING_PROTOCOL"))
+                    (ResetDateCommand))
             {
-                File.WriteAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                    @"CheckIfGifsWhereNotPostedToday.txt"), String.Empty);
+                ResetDay();
                 await turnContext.SendActivityAsync("SPAMING PROTOCOL RESET. TRY TO POST GIF AGAIN", cancellationToken: cancellationToken);
             }
         }
@@ -142,11 +138,28 @@ namespace FridayGifBot
                 int secondStringPosition = message.IndexOf(".gif");
                 string newGifAdressToSave = message.Substring(firstStringPosition,
                     secondStringPosition - firstStringPosition + 4);
-                
-                var anotherTemp = new Dictionary<string, object>();
-                anotherTemp.Add("IsGifPostedToday", DateTime.Today.ToShortDateString());
-                _myStorage.WriteAsync(anotherTemp);
-                ///TEMP!!!
+
+                var readingTask = _myStorage.ReadAsync(new[] {GifAmmount});
+                readingTask.Wait();
+
+                int gifCurrentNumber = Convert.ToInt32(readingTask.Result.FirstOrDefault().Value);
+                gifCurrentNumber++;
+
+                string blobObjectNumber = Convert.ToString(gifCurrentNumber);
+
+                var dictionary = new Dictionary<string, object>();
+                dictionary.Add(blobObjectNumber, (object)newGifAdressToSave);
+                var savingTask = _myStorage.WriteAsync(dictionary);
+                savingTask.Wait();
+
+                var deletingGifAmmount = _myStorage.DeleteAsync(new[] {GifAmmount});
+                deletingGifAmmount.Wait();
+
+                var tempDictionary = new Dictionary<string, object>();
+                tempDictionary.Add(GifAmmount, (object)gifCurrentNumber);
+                var recreatingGifAmmount = _myStorage.WriteAsync(tempDictionary);
+                recreatingGifAmmount.Wait();
+
                 return true;
             }
             catch (Exception)
@@ -157,15 +170,25 @@ namespace FridayGifBot
 
         private bool CheckIfGifsWhereNotPostedToday()
         {
-            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                @"CheckIfGifsWhereNotPostedToday.txt");
-            if (File.ReadAllText(path) == DateTime.Today.ToShortDateString())
+            var readingTask = _myStorage.ReadAsync(new[] {IsGifPostedToday});
+            readingTask.Wait();
+            var gifPostedDate = (DateTime)readingTask.Result.FirstOrDefault().Value;
+            if ( gifPostedDate.ToShortDateString() == DateTime.Today.ToShortDateString())
                 return false;
-            else
             {
-                File.WriteAllText(path, DateTime.Today.ToShortDateString());
+                ResetDay();
                 return true;
             }
+        }
+
+        private void ResetDay()
+        {
+            var deletingTask = _myStorage.DeleteAsync(new[] { IsGifPostedToday });
+            deletingTask.Wait();
+            var newDateEntry = new Dictionary<string, object>();
+            newDateEntry.Add(IsGifPostedToday, (object)DateTime.Today.ToShortDateString());
+            var newDateEntryTask = _myStorage.WriteAsync(newDateEntry);
+            newDateEntryTask.Wait();
         }
     }
 }

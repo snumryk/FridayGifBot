@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="All_gifs.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Bot.Builder.Azure" Version="4.4.5" />
     <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.4.3" />
@@ -17,9 +21,6 @@
   </ItemGroup>
 
     <ItemGroup>
-      <None Update="All_gifs.txt">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
       <None Update="CheckIfGifsWhereNotPostedToday.txt">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
