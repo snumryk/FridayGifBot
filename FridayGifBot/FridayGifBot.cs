@@ -133,8 +133,6 @@ namespace FridayGifBot
 
         private bool SaveNewGifAddress(string message)
         {
-            try
-            {
                 int firstStringPosition = message.IndexOf("http");
                 int secondStringPosition = message.IndexOf(".gif");
                 string newGifAdressToSave = message.Substring(firstStringPosition,
@@ -162,11 +160,6 @@ namespace FridayGifBot
                 recreatingGifAmmount.Wait();
 
                 return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
         }
 
         private bool CheckIfGifsWhereNotPostedToday()
