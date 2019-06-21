@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <None Remove="All_gifs.txt" />
+    <None Remove="CheckIfGifsWhereNotPostedToday.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,11 +20,5 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
-    <ItemGroup>
-      <None Update="CheckIfGifsWhereNotPostedToday.txt">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
 
 </Project>

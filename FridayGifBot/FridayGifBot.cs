@@ -67,8 +67,7 @@ namespace FridayGifBot
 
             }
             else if (turnContext.Activity.Type == ActivityTypes.Message
-                     && turnContext.Activity.Text.Contains(SpamGifCommand)
-                     && !turnContext.Activity.Text.Contains(".gif"))
+                     && turnContext.Activity.Text.Contains(SpamGifCommand))
             {
                 if (CheckIfGifsWhereNotPostedToday())
                 {
@@ -106,13 +105,6 @@ namespace FridayGifBot
                         "Gif adding is alowed only once per week. Use BOT_RESET_FRIDAY_SPAMING_PROTOCOL command to reset",
                         cancellationToken: cancellationToken);
                 }
-            }
-
-            else if (turnContext.Activity.Type == ActivityTypes.Message
-                     && turnContext.Activity.Text.Contains(SpamGifCommand)
-                     && turnContext.Activity.Text.Contains(".gif") && DateTime.Now.DayOfWeek != DayOfWeek.Friday)
-            {
-                await turnContext.SendActivityAsync("WRONG DAY FOR GIFs", cancellationToken: cancellationToken);
             }
 
             if (turnContext.Activity.Type == ActivityTypes.Message
@@ -164,15 +156,16 @@ namespace FridayGifBot
 
         private bool CheckIfGifsWhereNotPostedToday()
         {
-            var readingTask = _myStorage.ReadAsync(new[] {IsGifPostedToday});
-            readingTask.Wait();
-            var gifPostedDate = (DateTime)readingTask.Result.FirstOrDefault().Value;
-            if ( gifPostedDate.ToShortDateString() == DateTime.Today.ToShortDateString())
-                return false;
-            {
-                ResetDay();
-                return true;
-            }
+            //var readingTask = _myStorage.ReadAsync(new[] {IsGifPostedToday});
+            //readingTask.Wait();
+            //var gifPostedDate = (DateTime)readingTask.Result.FirstOrDefault().Value;
+            //if ( gifPostedDate.ToShortDateString() == DateTime.Today.ToShortDateString())
+            //    return false;
+            //{
+            //    ResetDay();
+            //    return true;
+            //}
+            return true;
         }
 
         private void ResetDay()
