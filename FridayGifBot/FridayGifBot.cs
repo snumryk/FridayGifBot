@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -18,6 +19,12 @@ namespace FridayGifBot
         private static readonly AzureBlobStorage _myStorage = 
             new AzureBlobStorage
             ("DefaultEndpointsProtocol=https;AccountName=fridaygifbotfilestorage;AccountKey=tgyilHQvZOsJCv8jqTtA6+Uu4tF15tbLHssjnNNky9qa0x4kKwxcWqvl2uqKLlkA+2kao6l30db2IkU7SVS0CQ==;EndpointSuffix=core.windows.net", "linkscontainer");
+        /// <summary>
+        /// TEMP, UDOLI
+        /// </summary>
+        private static int _gifAmmount = 139;
+
+        private static bool _gifPostedToday = false;
         public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Handle Message activity type, which is the main activity type for shown within a conversational interface
@@ -30,21 +37,19 @@ namespace FridayGifBot
             {
                 if (CheckIfGifsWhereNotPostedToday())
                 {
-                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                        @"All_gifs.txt");
                     try
                     {
-                        if (SaveNewGifAddress(path, turnContext.Activity.Text))
+                        if (SaveNewGifAddress(turnContext.Activity.Text))
                         {
                             await turnContext.SendActivityAsync("SPAMMING PROTOCOL INITIATED",
                                 cancellationToken: cancellationToken);
-                            string[] gifLinks = File.ReadAllLines(path);
-                            for (int i = 0; i < gifLinks.Length; i++)
-                            {
-                                var reply = turnContext.Activity.CreateReply();
-                                reply.Attachments.Add(new Attachment("image/gif", gifLinks[i]));
-                                await turnContext.SendActivityAsync(reply, cancellationToken);
-                            }
+                            //Dictionary<string, object> gifLinks = _myStorage.ReadAsync();
+                            //for (int i = 0; i < gifLinks.Length; i++)
+                            //{
+                            //    var reply = turnContext.Activity.CreateReply();
+                            //    reply.Attachments.Add(new Attachment("image/gif", gifLinks[i]));
+                            //    await turnContext.SendActivityAsync(reply, cancellationToken);
+                            //}
                         }
                         else
                             await turnContext.SendActivityAsync("FAILED TO PROCESS GIF URL",
@@ -129,23 +134,22 @@ namespace FridayGifBot
             }
         }
 
-        private void executeSpammingProtocol()
-        {
-            
-        }
-
-        private bool SaveNewGifAddress(string path, string message)
+        private bool SaveNewGifAddress(string message)
         {
             try
             {
-                //int firstStringPosition = message.IndexOf("http");
-                //int secondStringPosition = message.IndexOf(".gif");
-                //string newGifAdressToSave = message.Substring(firstStringPosition,
-                //    secondStringPosition - firstStringPosition + 4);
-
-
-                _myStorage.WriteAsync(File.ReadAllLines(path).Select((l, i) => (l, i))
-                    .ToDictionary(arg => arg.Item2.ToString(), arg => (object)arg.Item1));
+                int firstStringPosition = message.IndexOf("http");
+                int secondStringPosition = message.IndexOf(".gif");
+                string newGifAdressToSave = message.Substring(firstStringPosition,
+                    secondStringPosition - firstStringPosition + 4);
+                ///TEMP!!!
+                var temp = new Dictionary<string, object>();
+                temp.Add("GifAmmount", (object)_gifAmmount);
+                _myStorage.WriteAsync(temp);
+                var anotherTemp = new Dictionary<string, object>();
+                anotherTemp.Add("GifPostedToday", (object)_gifPostedToday);
+                _myStorage.WriteAsync(anotherTemp);
+                ///TEMP!!!
                 return true;
             }
             catch (Exception)
