@@ -126,7 +126,8 @@ namespace FridayGifBot
             fetchGifFromAzure.Wait();
             string currentGifAdress = Convert.ToString(fetchGifFromAzure.Result.FirstOrDefault().Value);
             var reply = turnContext.Activity.CreateReply();
-            reply.Attachments.Add(new Attachment("image/gif", currentGifAdress));
+            reply.Attachments.Add(new Attachment());
+            reply.Attachments.FirstOrDefault().ContentUrl = currentGifAdress;
             await turnContext.SendActivityAsync(reply, cancellationToken);
         }
 
