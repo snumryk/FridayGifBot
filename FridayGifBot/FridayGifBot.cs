@@ -125,10 +125,12 @@ namespace FridayGifBot
             var fetchGifFromAzure = _myStorage.ReadAsync(new[] { gifIndex });
             fetchGifFromAzure.Wait();
             string currentGifAdress = Convert.ToString(fetchGifFromAzure.Result.FirstOrDefault().Value);
-            //var reply = turnContext.Activity.CreateReply();
-            //reply.Attachments.Add(new Attachment());
-            //reply.Attachments.FirstOrDefault().ContentUrl = currentGifAdress;
-            await turnContext.SendActivityAsync(currentGifAdress, cancellationToken: cancellationToken);
+            IMessageActivity reply = Activity.CreateMessageActivity();
+            reply.Attachments.Add(new Attachment());
+            reply.Attachments.FirstOrDefault().ContentUrl = currentGifAdress;
+            reply.Attachments.FirstOrDefault().ContentType = "image/gif";
+            reply.Attachments.FirstOrDefault().Name = gifIndex;
+            await turnContext.SendActivityAsync(reply, cancellationToken: cancellationToken);
         }
 
         private bool SaveNewGifAddress(string message)
