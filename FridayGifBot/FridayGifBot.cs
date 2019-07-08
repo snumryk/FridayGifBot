@@ -34,7 +34,21 @@ namespace FridayGifBot
             // Message activities may contain text, speech, interactive cards, and binary or unknown attachments.
             // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types
 
+            await turnContext.SendActivityAsync(turnContext.Activity.AttachmentLayout,
+                cancellationToken: cancellationToken);
+            await turnContext.SendActivityAsync(turnContext.Activity.DeliveryMode,
+                cancellationToken: cancellationToken);
+            await turnContext.SendActivityAsync(turnContext.Activity.Summary,
+                cancellationToken: cancellationToken);
+            await turnContext.SendActivityAsync(turnContext.Activity.Type,
+                cancellationToken: cancellationToken);
+            await turnContext.SendActivityAsync(turnContext.Activity.ToString(),
+                cancellationToken: cancellationToken);
             await turnContext.SendActivityAsync(turnContext.Activity.Properties.AsFormattedString(),
+                cancellationToken: cancellationToken);
+            await turnContext.SendActivityAsync(turnContext.Activity.Code,
+                cancellationToken: cancellationToken);
+            await turnContext.SendActivityAsync(turnContext.Activity.Id,
                 cancellationToken: cancellationToken);
 
             if (turnContext.Activity.Type == ActivityTypes.Message
