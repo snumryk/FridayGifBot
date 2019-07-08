@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Schema;
 using Microsoft.Bot.Builder.Azure;
+using Microsoft.Rest;
 
 namespace FridayGifBot
 {
@@ -33,7 +34,7 @@ namespace FridayGifBot
             // Message activities may contain text, speech, interactive cards, and binary or unknown attachments.
             // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types
 
-            await turnContext.SendActivityAsync(turnContext.Activity.Properties.ToString(),
+            await turnContext.SendActivityAsync(turnContext.Activity.Properties.AsFormattedString(),
                 cancellationToken: cancellationToken);
 
             if (turnContext.Activity.Type == ActivityTypes.Message
