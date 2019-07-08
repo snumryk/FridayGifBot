@@ -32,6 +32,10 @@ namespace FridayGifBot
             // Handle Message activity type, which is the main activity type for shown within a conversational interface
             // Message activities may contain text, speech, interactive cards, and binary or unknown attachments.
             // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types
+
+            await turnContext.SendActivityAsync(turnContext.Activity.Properties.ToString(),
+                cancellationToken: cancellationToken);
+
             if (turnContext.Activity.Type == ActivityTypes.Message
                 && turnContext.Activity.Text.Contains(AddNewGifCommand)
                 && turnContext.Activity.Text.Contains(".gif")) //&& DateTime.Now.DayOfWeek == DayOfWeek.Friday
