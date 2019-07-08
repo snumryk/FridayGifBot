@@ -89,9 +89,8 @@ namespace FridayGifBot
                     }
                     catch (Exception e)
                     {
-                        await turnContext.SendActivityAsync("SPAMMING PROTOCOL FAILED " + e,
-                            cancellationToken: cancellationToken);
-                        await turnContext.SendActivityAsync( e.ToString(),
+                        await turnContext.SendActivityAsync("SPAMMING PROTOCOL FAILED " + e.Message + " " +e.ToString()
+                            +" " + e.Source + " " + e.InnerException + " " + e.StackTrace, 
                             cancellationToken: cancellationToken);
                         throw;
                     }
