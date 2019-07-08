@@ -81,7 +81,7 @@ namespace FridayGifBot
                         readigTask.Wait();
                         gifLinksAmmount = Convert.ToInt32(readigTask.Result.FirstOrDefault().Value);
                         gifLinksAmmount++;
-                        for (int i = 1; i < gifLinksAmmount; i++)
+                        for (int i = 0; i < gifLinksAmmount; i++)
                         {
                             await SpamGif(i, turnContext, CancellationToken.None);
                         }
