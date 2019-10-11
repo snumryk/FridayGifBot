@@ -121,12 +121,12 @@ namespace FridayGifBot
         private async Task SpamGif(int index, ITurnContext turnContext, CancellationToken cancellationToken)
         {
             string gifIndex = Convert.ToString(index);
-            var fetchGifFromAzure = _myStorage.ReadAsync(new[] { gifIndex });
-            fetchGifFromAzure.Wait();
-            string currentGifAdress = Convert.ToString(fetchGifFromAzure.Result.FirstOrDefault().Value);
+            Task<IDictionary<string, object>> fetchGifFromAzure = _myStorage.ReadAsync(new[] { gifIndex }, cancellationToken);
+            fetchGifFromAzure.Wait(cancellationToken);
+            var currentGif = fetchGifFromAzure.Result.FirstOrDefault().Value;
             IMessageActivity reply = Activity.CreateMessageActivity();
             reply.Attachments.Add(new Attachment());
-            reply.Attachments.FirstOrDefault().ContentUrl = currentGifAdress;
+            reply.Attachments.FirstOrDefault().Content = currentGif;
             reply.Attachments.FirstOrDefault().ContentType = "image/gif";
             reply.Attachments.FirstOrDefault().Name = gifIndex;
             await turnContext.SendActivityAsync(reply, cancellationToken: cancellationToken);
