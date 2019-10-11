@@ -77,19 +77,11 @@ namespace FridayGifBot
                     try
                     {
                         var readigTask = _myStorage.ReadAsync(new[] { GifAmmountKey });
-
-                        await turnContext.SendActivityAsync($"DEBUGG 1 {readigTask.Result.FirstOrDefault().Value}",
-                            cancellationToken: cancellationToken);
-
                         readigTask.Wait();
                         gifLinksAmmount = Convert.ToInt32(readigTask.Result.FirstOrDefault().Value);
                         gifLinksAmmount++;
                         for (int i = 0; i < gifLinksAmmount; i++)
                         {
-
-                            await turnContext.SendActivityAsync("DEBUGG 2",
-                                cancellationToken: cancellationToken);
-                            
                             await SpamGif(i, turnContext);
                         }
                     }
@@ -130,10 +122,13 @@ namespace FridayGifBot
             string gifIndex = Convert.ToString(index);
             Task<IDictionary<string, object>> fetchGifFromAzure = _myStorage.ReadAsync(new[] { gifIndex });
             fetchGifFromAzure.Wait();
-            var currentGif = fetchGifFromAzure.Result.FirstOrDefault().Value;
+            var currentGif = fetchGifFromAzure.Result.FirstOrDefault().Value as Attachment;
+
+            await turnContext.SendActivityAsync($"DEBUGG 1{currentGif.ToString()}", 
+                cancellationToken: CancellationToken.None);
+
             IMessageActivity reply = Activity.CreateMessageActivity();
-            reply.Attachments.Add(new Attachment());
-            reply.Attachments.FirstOrDefault().Content = currentGif;
+            reply.Attachments.Add(currentGif);
             reply.Attachments.FirstOrDefault().ContentType = "image/gif";
             reply.Attachments.FirstOrDefault().Name = gifIndex;
             await turnContext.SendActivityAsync(reply, cancellationToken: CancellationToken.None);
