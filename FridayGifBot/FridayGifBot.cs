@@ -80,7 +80,7 @@ namespace FridayGifBot
                         readigTask.Wait();
                         gifLinksAmmount = Convert.ToInt32(readigTask.Result.FirstOrDefault().Value);
                         gifLinksAmmount++;
-                        for (int i = 0; i < gifLinksAmmount; i++)
+                        for (int i = 1; i < gifLinksAmmount; i++)
                         {
                             await SpamGif(i, turnContext);
                         }
@@ -120,7 +120,7 @@ namespace FridayGifBot
         private async Task SpamGif(int index, ITurnContext turnContext)
         {
             string gifIndex = Convert.ToString(index);
-            Task<IDictionary<string, object>> fetchGifFromAzure = _myStorage.ReadAsync(new[] { gifIndex });
+            Task<IDictionary<string, object>> fetchGifFromAzure = _myStorage.ReadAsync(new[] { gifIndex + ".gif" });
             fetchGifFromAzure.Wait();
             var currentGif = fetchGifFromAzure.Result.FirstOrDefault().Value as Attachment;
 
