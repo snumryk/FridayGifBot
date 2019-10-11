@@ -34,14 +34,13 @@ namespace FridayGifBot
             // Message activities may contain text, speech, interactive cards, and binary or unknown attachments.
             // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types
             if (turnContext.Activity.Type == ActivityTypes.Message
-                && turnContext.Activity.Text.Contains(AddNewGifCommand)
-                && turnContext.Activity.Text.Contains(".gif")) //&& DateTime.Now.DayOfWeek == DayOfWeek.Friday
+                && turnContext.Activity.Text.Contains(AddNewGifCommand))
             {
                 if (CheckIfGifsWhereNotPostedToday())
                 {
                     try
                     {
-                        if (SaveNewGifAddress(turnContext.Activity.Text))
+                        if (SaveNewGifAddress(turnContext.Activity.Attachments.FirstOrDefault()))
                         {
                             await turnContext.SendActivityAsync("GIF SUCCESSFULLY ADDED TO THE DATABASE",
                                 cancellationToken: cancellationToken);
@@ -78,12 +77,20 @@ namespace FridayGifBot
                     try
                     {
                         var readigTask = _myStorage.ReadAsync(new[] { GifAmmountKey });
+
+                        await turnContext.SendActivityAsync($"DEBUGG 1 {readigTask.Result.FirstOrDefault().Value}",
+                            cancellationToken: cancellationToken);
+
                         readigTask.Wait();
                         gifLinksAmmount = Convert.ToInt32(readigTask.Result.FirstOrDefault().Value);
                         gifLinksAmmount++;
                         for (int i = 0; i < gifLinksAmmount; i++)
                         {
-                            await SpamGif(i, turnContext, CancellationToken.None);
+
+                            await turnContext.SendActivityAsync("DEBUGG 2",
+                                cancellationToken: cancellationToken);
+                            
+                            await SpamGif(i, turnContext);
                         }
                     }
                     catch (Exception e)
@@ -118,27 +125,22 @@ namespace FridayGifBot
             }
         }
 
-        private async Task SpamGif(int index, ITurnContext turnContext, CancellationToken cancellationToken)
+        private async Task SpamGif(int index, ITurnContext turnContext)
         {
             string gifIndex = Convert.ToString(index);
-            Task<IDictionary<string, object>> fetchGifFromAzure = _myStorage.ReadAsync(new[] { gifIndex }, cancellationToken);
-            fetchGifFromAzure.Wait(cancellationToken);
+            Task<IDictionary<string, object>> fetchGifFromAzure = _myStorage.ReadAsync(new[] { gifIndex });
+            fetchGifFromAzure.Wait();
             var currentGif = fetchGifFromAzure.Result.FirstOrDefault().Value;
             IMessageActivity reply = Activity.CreateMessageActivity();
             reply.Attachments.Add(new Attachment());
             reply.Attachments.FirstOrDefault().Content = currentGif;
             reply.Attachments.FirstOrDefault().ContentType = "image/gif";
             reply.Attachments.FirstOrDefault().Name = gifIndex;
-            await turnContext.SendActivityAsync(reply, cancellationToken: cancellationToken);
+            await turnContext.SendActivityAsync(reply, cancellationToken: CancellationToken.None);
         }
 
-        private bool SaveNewGifAddress(string message)
+        private bool SaveNewGifAddress(Attachment gif)
         {
-                int firstStringPosition = message.IndexOf("http");
-                int secondStringPosition = message.IndexOf(".gif");
-                string newGifAdressToSave = message.Substring(firstStringPosition,
-                    secondStringPosition - firstStringPosition + 4);
-
                 var readingTask = _myStorage.ReadAsync(new[] {GifAmmountKey});
                 readingTask.Wait();
                 int gifCurrentNumber = Convert.ToInt32(readingTask.Result.FirstOrDefault().Value);
@@ -147,7 +149,7 @@ namespace FridayGifBot
                 string blobObjectNumber = Convert.ToString(gifCurrentNumber);
 
                 var dictionary = new Dictionary<string, object>();
-                dictionary.Add(blobObjectNumber, (object)newGifAdressToSave);
+                dictionary.Add(blobObjectNumber, (object)gif);
                 var savingTask = _myStorage.WriteAsync(dictionary);
                 savingTask.Wait();
 
